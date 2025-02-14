@@ -67,7 +67,7 @@ class ParsedBean {
 
   final beanedForeignAssociations = <DartType, BeanedForeignAssociation>{};
 
-  ParsedBean(this.clazz, {this.doRelations: true, this.doAssociation: true});
+  ParsedBean(this.clazz, {this.doRelations = true, this.doAssociation = true});
 
   WriterModel detect() {
     _getModel();
@@ -92,25 +92,18 @@ class ParsedBean {
 
       if (current == null) {
         bool? byHasMany = foreign.byHasMany;
-        if (byHasMany != null) {
-          if (byHasMany != other.hasMany) {
-            throw Exception('Mismatching association type!');
-          }
-        } else {
-          byHasMany = other.hasMany;
+        if (byHasMany != other.hasMany) {
+          throw Exception('Mismatching association type!');
         }
-        current = BelongsToAssociation(bean, [], [], other, byHasMany);
+              current = BelongsToAssociation(bean, [], [], other, byHasMany);
         beanedAssociations[bean] = current;
-      } else if (current is BelongsToAssociation) {
-        if (current.byHasMany != other.hasMany) {
-          throw Exception('Mismatching association type!');
-        }
-        if (current.belongsToMany != other is PreloadManyToMany) {
-          throw Exception('Mismatching association type!');
-        }
-      } else {
-        throw Exception('Table and bean associations mixed!');
+      } else      if (current.byHasMany != other.hasMany) {
+        throw Exception('Mismatching association type!');
       }
+      if (current.belongsToMany != other is PreloadManyToMany) {
+        throw Exception('Mismatching association type!');
+      }
+
       beanedAssociations[bean]!.fields.add(f);
     }
 
@@ -129,23 +122,15 @@ class ParsedBean {
         final Preload? other = info.findHasXByAssociation(clazz.thisType);
         if (other != null) continue;
       }
-
-      if (foreign.byHasMany == null)
-        throw Exception(
-            'For un-associated foreign keys, "byHasMany" must be specified!');
-
       BeanedForeignAssociation? current = beanedForeignAssociations[bean];
 
       if (current == null) {
         current = BeanedForeignAssociation(bean, [], [], foreign.byHasMany);
         beanedForeignAssociations[bean] = current;
-      } else if (current is BeanedForeignAssociation) {
-        if (current.byHasMany != foreign.byHasMany) {
-          throw Exception('Mismatching association type!');
-        }
-      } else {
-        throw Exception('Table and bean associations mixed!');
+      } else      if (current.byHasMany != foreign.byHasMany) {
+        throw Exception('Mismatching association type!');
       }
+
       beanedForeignAssociations[bean]!.fields.add(f);
     }
 
@@ -211,7 +196,7 @@ class ParsedBean {
 
     final ret = WriterModel(
         clazz.name,
-        model.getDisplayString(withNullability: false),
+        model.getDisplayString(),
         fields,
         primaries,
         beanedAssociations,
@@ -256,7 +241,7 @@ class ParsedBean {
 
     model = interface.typeArguments.first;
 
-    if (model.isDynamic) {
+    if (model is DynamicType) {
       throw Exception("Don't support Model of type dynamic!");
     }
   }
@@ -343,7 +328,7 @@ class ParsedBean {
         } else {
           if (!_relation(clazz.thisType, field)) {
             final vf = Field(
-                field.type.getDisplayString(withNullability: false),
+                field.type.getDisplayString(),
                 field.name,
                 field.name,
                 unique: null,
@@ -403,8 +388,8 @@ class ParsedBean {
               ParsedBean(bean.element as ClassElement, doRelations: false)
                   .detect();
           g = info.belongTos.values.toList().firstWhereOrNull((bts) =>
-              bts.beanName == curBean.getDisplayString(withNullability: false));
-          if (g == null || g is! BelongsToAssociation)
+              bts.beanName == curBean.getDisplayString());
+          if (g == null)
             throw Exception('Association $bean not found! Field ${f.name}.');
         }
       }
@@ -431,7 +416,7 @@ class ParsedBean {
             ParsedBean(pivot.element as ClassElement, doRelations: false)
                 .detect();
         g = beanInfo.belongTos[curBean];
-        if (g == null || g is! BelongsToAssociation) {
+        if (g == null) {
           throw Exception('Association $curBean not found! Field ${f.name}.');
         }
         final WriterModel targetInfo =
@@ -458,7 +443,7 @@ Field parseColumn(FieldElement f, DartObject obj) {
   final int? length = obj.getField('length')?.toIntValue();
   if (isColumn.isExactlyType(obj.type!)) {
     return Field(
-        f.type.getDisplayString(withNullability: true), f.name, colName,
+        f.type.getDisplayString(), f.name, colName,
         isNullable: isNullable ?? true,
         autoIncrement: autoIncrement ?? false,
         length: length,
@@ -468,7 +453,7 @@ Field parseColumn(FieldElement f, DartObject obj) {
         isFinal: f.isFinal);
   } else if (isPrimaryKey.isExactlyType(obj.type!)) {
     return Field(
-        f.type.getDisplayString(withNullability: true), f.name, colName,
+        f.type.getDisplayString(), f.name, colName,
         isNullable: isNullable ?? true,
         isPrimary: true,
         autoIncrement: autoIncrement ?? false,
@@ -484,7 +469,7 @@ Field parseColumn(FieldElement f, DartObject obj) {
     if (table != null && refCol != null) fore = TableForeign(table, refCol);
 
     return Field(
-        f.type.getDisplayString(withNullability: true), f.name, colName,
+        f.type.getDisplayString(), f.name, colName,
         isNullable: isNullable ?? true,
         isPrimary: isPrimary ?? false,
         foreign: fore,
@@ -506,7 +491,7 @@ Field parseColumn(FieldElement f, DartObject obj) {
     Foreign fore =
         BelongsToForeign(bean, refCol, byHasMany ?? false, toMany ?? false);
     return Field(
-        f.type.getDisplayString(withNullability: true), f.name, colName,
+        f.type.getDisplayString(), f.name, colName,
         isNullable: isNullable ?? true,
         isPrimary: isPrimary ?? false,
         foreign: fore,

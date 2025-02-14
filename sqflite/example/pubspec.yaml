@@ -1,17 +1,13 @@
 name: jaguar_query_sqflite_example
 description: Example for Jaguar Query sqflite adapter
 version: 2.2.9
-authors:
-- Ravi Teja Gudapati <tejainece@gmail.com>
-- Kevin Segaud <segaud.kevin@gmail.com>
-- Aumard Jimmy <jimmy.aumard@gmail.com>
+publish_to: none
 homepage: https://github.com/Jaguar-dart/jaguar_orm
-documentation:
+
 
 environment:
-  sdk: '>=2.0.0-dev.65.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
-flutter:
 
 dependencies:
   flutter:

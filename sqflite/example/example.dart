@@ -9,7 +9,7 @@ import 'package:sqflite/sqflite.dart';
 
 // The model
 class Post {
-  Post();
+  Post() : id = 0, msg = '', author = '';
 
   Post.make(this.id, this.msg, this.author);
 
@@ -23,7 +23,7 @@ class Post {
 }
 
 /// The adapter
-SqfliteAdapter _adapter;
+SqfliteAdapter _adapter = SqfliteAdapter(null);
 
 /// The bean
 class PostBean {
@@ -40,10 +40,7 @@ class PostBean {
   String get tableName => 'posts';
 
   Future<Null> createTable() async {
-    final st = new Create(tableName, ifNotExists: true)
-        .addInt('_id', primary: true)
-        .addStr('msg', isNullable: true)
-        .addStr('author', isNullable: true);
+    final st = new Create(tableName, ifNotExists: true).addInt('_id', primary: true).addStr('msg', isNullable: true).addStr('author', isNullable: true);
 
     await _adapter.createTable(st);
   }
@@ -75,12 +72,12 @@ class PostBean {
 
     updater.where(this.id.eq(id));
 
-    Map map = await _adapter.findOne(updater);
+    Map<String, dynamic>? map = await _adapter.findOne(updater);
 
     Post post = new Post();
-    post.id = map['_id'];
-    post.msg = map['msg'];
-    post.author = map['author'];
+    post.id = map?['_id'] ?? 0;
+    post.msg = map?['msg'] ?? '';
+    post.author = map?['author'] ?? '';
 
     return post;
   }
@@ -91,7 +88,7 @@ class PostBean {
 
     List<Map> maps = await (await _adapter.find(finder)).toList();
 
-    List<Post> posts = new List<Post>();
+    List<Post> posts = <Post>[];
 
     for (Map map in maps) {
       Post post = new Post();
